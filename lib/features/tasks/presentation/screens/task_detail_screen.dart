@@ -129,9 +129,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.taskId != null ? 'OBJECTIVE UPDATE' : 'NEW OBJECTIVE',
-        ),
+        title: Text(widget.taskId != null ? 'แก้ไขงาน' : 'เพิ่มงานใหม่'),
         actions: [
           if (_isLoading)
             const Center(
@@ -146,9 +144,9 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
             )
           else
             IconButton(
-              icon: const Icon(Icons.security_update_good_outlined),
+              icon: const Icon(Icons.check),
               onPressed: _saveTask,
-              tooltip: 'SAVE MISSION',
+              tooltip: 'บันทึกงาน',
             ),
         ],
       ),
@@ -158,17 +156,17 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
           padding: const EdgeInsets.all(24),
           children: [
             // Title Field
-            _buildFieldHeader(theme, 'IDENTIFIER *'),
+            _buildFieldHeader(theme, 'ชื่องาน *'),
             const SizedBox(height: 8),
             TextFormField(
               controller: _titleController,
               decoration: const InputDecoration(
-                hintText: 'ENTER TASK TITLE',
+                hintText: 'ระบุชื่องาน',
                 border: OutlineInputBorder(),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'IDENTIFIER REQUIRED';
+                  return 'กรุณาระบุชื่องาน';
                 }
                 return null;
               },
@@ -178,12 +176,12 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
             const SizedBox(height: 24),
 
             // Description Field
-            _buildFieldHeader(theme, 'OPERATIONAL DETAILS'),
+            _buildFieldHeader(theme, 'รายละเอียด'),
             const SizedBox(height: 8),
             TextFormField(
               controller: _descriptionController,
               decoration: const InputDecoration(
-                hintText: 'ENTER MISSION SPECIFICS',
+                hintText: 'ระบุรายละเอียดงาน (ถ้ามี)',
                 border: OutlineInputBorder(),
               ),
               maxLines: 4,
@@ -192,30 +190,23 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
             const SizedBox(height: 32),
 
             // Priority Selector
-            _buildFieldHeader(theme, 'PRIORITY LEVEL'),
+            _buildFieldHeader(theme, 'ระดับความสำคัญ'),
             const SizedBox(height: 12),
             SegmentedButton<Priority>(
               segments: const [
-                ButtonSegment(value: Priority.low, label: Text('LOW')),
-                ButtonSegment(value: Priority.medium, label: Text('NORMAL')),
-                ButtonSegment(value: Priority.high, label: Text('CRITICAL')),
+                ButtonSegment(value: Priority.low, label: Text('ต่ำ')),
+                ButtonSegment(value: Priority.medium, label: Text('ปานกลาง')),
+                ButtonSegment(value: Priority.high, label: Text('สูง')),
               ],
               selected: {_selectedPriority},
               onSelectionChanged: (Set<Priority> selected) {
                 setState(() => _selectedPriority = selected.first);
               },
-              style: SegmentedButton.styleFrom(
-                selectedBackgroundColor: theme.colorScheme.primary,
-                selectedForegroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
             ),
             const SizedBox(height: 32),
 
             // Due Date Selector
-            _buildFieldHeader(theme, 'DEADLINE CONFIGURATION'),
+            _buildFieldHeader(theme, 'วันครบกำหนด'),
             const SizedBox(height: 12),
             ListTile(
               tileColor: theme.colorScheme.surfaceContainerHighest.withOpacity(
@@ -231,8 +222,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
               title: Text(
                 _selectedDueDate != null
                     ? '${_selectedDueDate!.day}/${_selectedDueDate!.month}/${_selectedDueDate!.year}'
-                          .toUpperCase()
-                    : 'NO DEADLINE SET',
+                    : 'ไม่ได้กำหนด',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: _selectedDueDate != null
@@ -257,21 +247,16 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
             ElevatedButton(
               onPressed: _isLoading ? null : _saveTask,
               style: ElevatedButton.styleFrom(
-                backgroundColor: theme.colorScheme.primary,
-                foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 56),
-                shape: const RoundedRectangleBorder(),
-                elevation: 4,
-                shadowColor: theme.colorScheme.primary.withOpacity(0.5),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
               child: Text(
-                widget.taskId != null
-                    ? 'COMMIT UPDATE'
-                    : 'INITIALIZE OBJECTIVE',
+                widget.taskId != null ? 'บันทึกการแก้ไข' : 'เพิ่มงาน',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 2.0,
                 ),
               ),
             ),

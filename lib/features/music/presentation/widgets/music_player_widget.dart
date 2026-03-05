@@ -21,15 +21,20 @@ class MusicPlayerWidget extends ConsumerWidget {
         // Hidden Youtube Player
         if (currentTrack != null &&
             currentTrack.sourceType == SourceType.youtube)
-          SizedBox(
-            height: 1,
-            width: 1,
-            child: Consumer(
-              builder: (context, ref, _) {
-                final service = ref.watch(youtubePlayerServiceProvider);
-                if (service.controller == null) return const SizedBox.shrink();
-                return YoutubePlayer(controller: service.controller!);
-              },
+          Opacity(
+            opacity: 0.01,
+            child: SizedBox(
+              height: 10,
+              width: 10,
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final service = ref.watch(youtubePlayerServiceProvider);
+                  if (service.controller == null) {
+                    return const SizedBox.shrink();
+                  }
+                  return YoutubePlayer(controller: service.controller!);
+                },
+              ),
             ),
           ),
 

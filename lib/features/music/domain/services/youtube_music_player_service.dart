@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import 'package:focus_companion/features/music/domain/entities/music_track.dart';
 import 'package:focus_companion/features/music/domain/services/music_player_service.dart';
 
-class YoutubeMusicPlayerService implements MusicPlayerService {
+class YoutubeMusicPlayerService extends ChangeNotifier
+    implements MusicPlayerService {
   YoutubePlayerController? _controller;
   final StreamController<MusicPlayerState> _stateController =
       StreamController<MusicPlayerState>.broadcast();
@@ -68,6 +70,7 @@ class YoutubeMusicPlayerService implements MusicPlayerService {
           mute: false,
         ),
       );
+      notifyListeners();
 
       // Start position tracking
       _positionTimer?.cancel();
@@ -105,6 +108,7 @@ class YoutubeMusicPlayerService implements MusicPlayerService {
     await _controller?.stopVideo();
     _controller?.close();
     _controller = null;
+    notifyListeners();
     _currentTrack = null;
     _updateState(MusicPlayerState.stopped);
   }
@@ -137,5 +141,6 @@ class YoutubeMusicPlayerService implements MusicPlayerService {
     _stateController.close();
     _positionController.close();
     _durationController.close();
+    super.dispose();
   }
 }

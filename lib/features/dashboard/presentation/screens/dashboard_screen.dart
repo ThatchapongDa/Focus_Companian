@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:focus_companion/core/routing/app_router.dart';
 import 'package:focus_companion/features/tasks/data/providers/task_providers.dart';
 
-import 'package:focus_companion/core/widgets/tactical_card.dart';
-
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
@@ -15,10 +13,10 @@ class DashboardScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FOCUS COMMAND'),
+        title: const Text('Focus Companion'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.tune),
+            icon: const Icon(Icons.settings),
             onPressed: () =>
                 AppRouter.navigateTo(context, AppRouter.themeSettings),
             tooltip: 'INTERFACE CONFIG',
@@ -38,19 +36,16 @@ class DashboardScreen extends ConsumerWidget {
           children: [
             // Welcome Section
             Text(
-              'COMMAND CENTER',
-              style: theme.textTheme.labelSmall?.copyWith(
-                letterSpacing: 2,
-                color: theme.colorScheme.primary.withOpacity(0.7),
+              'สวัสดี! 👋',
+              style: theme.textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             Text(
-              'WELCOME, OPERATOR',
-              style: theme.textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.0,
+              'มาโฟกัสทำงานกันเถอะ',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
               ),
             ),
             const SizedBox(height: 32),
@@ -61,7 +56,7 @@ class DashboardScreen extends ConsumerWidget {
                 Expanded(
                   child: _QuickActionCard(
                     icon: Icons.timer,
-                    title: 'INITIATE FOCUS',
+                    title: 'เริ่มโฟกัส',
                     color: Colors.purple,
                     onTap: () {
                       AppRouter.navigateTo(context, AppRouter.focus);
@@ -72,7 +67,7 @@ class DashboardScreen extends ConsumerWidget {
                 Expanded(
                   child: _QuickActionCard(
                     icon: Icons.task_alt,
-                    title: 'MISSION LOGS',
+                    title: 'งานทั้งหมด',
                     color: Colors.blue,
                     onTap: () {
                       AppRouter.navigateTo(context, AppRouter.taskList);
@@ -87,7 +82,7 @@ class DashboardScreen extends ConsumerWidget {
                 Expanded(
                   child: _QuickActionCard(
                     icon: Icons.music_note,
-                    title: 'AUDIO',
+                    title: 'เพลง',
                     color: Colors.green,
                     onTap: () {
                       AppRouter.navigateTo(context, AppRouter.musicSelection);
@@ -98,7 +93,7 @@ class DashboardScreen extends ConsumerWidget {
                 Expanded(
                   child: _QuickActionCard(
                     icon: Icons.bar_chart,
-                    title: 'METRICS',
+                    title: 'สถิติ',
                     color: Colors.orange,
                     onTap: () {
                       AppRouter.navigateTo(context, AppRouter.statistics);
@@ -114,20 +109,16 @@ class DashboardScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'TODAY\'S OBJECTIVES',
+                  'งานวันนี้',
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0,
                   ),
                 ),
                 TextButton(
                   onPressed: () {
                     AppRouter.navigateTo(context, AppRouter.taskList);
                   },
-                  child: Text(
-                    'VIEW ALL',
-                    style: TextStyle(color: theme.colorScheme.primary),
-                  ),
+                  child: const Text('ดูทั้งหมด'),
                 ),
               ],
             ),
@@ -137,90 +128,87 @@ class DashboardScreen extends ConsumerWidget {
             todayTasksAsync.when(
               data: (tasks) {
                 if (tasks.isEmpty) {
-                  return TacticalCard(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.check_circle_outline,
-                          size: 48,
-                          color: theme.colorScheme.primary.withOpacity(0.3),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'NO ACTIVE MISSIONS',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: theme.colorScheme.onSurface.withOpacity(0.6),
-                            letterSpacing: 1.2,
+                  return Card(
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.check_circle_outline,
+                            size: 48,
+                            color: theme.colorScheme.primary.withOpacity(0.5),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 16),
+                          Text(
+                            'ไม่มีงานค้างอยู่',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: theme.colorScheme.onSurface.withOpacity(
+                                0.6,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }
 
                 return Column(
                   children: tasks.take(3).map((task) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: TacticalCard(
-                        padding: EdgeInsets.zero,
-                        child: ListTile(
-                          leading: Checkbox(
-                            value: task.isCompleted,
-                            activeColor: theme.colorScheme.primary,
-                            onChanged: (_) async {
-                              final repo = ref.read(taskRepositoryProvider);
-                              await repo.toggleComplete(task.id);
-                            },
-                          ),
-                          title: Text(
-                            task.title.toUpperCase(),
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 1.0,
-                              decoration: task.isCompleted
-                                  ? TextDecoration.lineThrough
-                                  : null,
-                            ),
-                          ),
-                          subtitle: task.description != null
-                              ? Text(
-                                  task.description!,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    color: theme.colorScheme.onSurface
-                                        .withOpacity(0.6),
-                                  ),
-                                )
-                              : null,
-                          trailing: task.totalFocusMinutes > 0
-                              ? Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: theme.colorScheme.primary,
-                                      width: 0.5,
-                                    ),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    '${task.totalFocusMinutes}M',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: theme.colorScheme.primary,
-                                    ),
-                                  ),
-                                )
-                              : null,
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ListTile(
+                        leading: Checkbox(
+                          value: task.isCompleted,
+                          activeColor: theme.colorScheme.primary,
+                          onChanged: (_) async {
+                            final repo = ref.read(taskRepositoryProvider);
+                            await repo.toggleComplete(task.id);
+                          },
                         ),
+                        title: Text(
+                          task.title,
+                          style: TextStyle(
+                            decoration: task.isCompleted
+                                ? TextDecoration.lineThrough
+                                : null,
+                          ),
+                        ),
+                        subtitle: task.description != null
+                            ? Text(
+                                task.description!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: theme.colorScheme.onSurface
+                                      .withOpacity(0.6),
+                                ),
+                              )
+                            : null,
+                        trailing: task.totalFocusMinutes > 0
+                            ? Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: theme.colorScheme.primary,
+                                    width: 0.5,
+                                  ),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '${task.totalFocusMinutes}M',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                ),
+                              )
+                            : null,
                       ),
                     );
                   }).toList(),
@@ -237,11 +225,8 @@ class DashboardScreen extends ConsumerWidget {
         onPressed: () {
           AppRouter.navigateTo(context, AppRouter.taskDetail);
         },
-        backgroundColor: theme.colorScheme.primary,
-        foregroundColor: Colors.white,
-        shape: const RoundedRectangleBorder(),
         icon: const Icon(Icons.add),
-        label: const Text('INITIATE MISSION'),
+        label: const Text('เพิ่มงาน'),
       ),
     );
   }
@@ -263,22 +248,30 @@ class _QuickActionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return TacticalCard(
-      padding: EdgeInsets.zero,
+    return Card(
+      elevation: 0,
+      color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 32, color: theme.colorScheme.primary),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                child: Icon(icon, size: 32, color: Colors.white),
+              ),
               const SizedBox(height: 12),
               Text(
-                title.toUpperCase(),
-                style: theme.textTheme.labelMedium?.copyWith(
+                title,
+                style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
                 ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),

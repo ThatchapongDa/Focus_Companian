@@ -32,8 +32,8 @@ class ThemeNotifier extends StateNotifier<ThemePreference> {
     await _repository.saveThemePreference(state);
   }
 
-  Future<void> toggleDarkMode() async {
-    state = state.copyWith(isDarkMode: !state.isDarkMode);
+  Future<void> setDarkMode(bool isDark) async {
+    state = state.copyWith(isDarkMode: isDark);
     await _repository.saveThemePreference(state);
   }
 
@@ -45,102 +45,20 @@ class ThemeNotifier extends StateNotifier<ThemePreference> {
 
 final themeDataProvider = Provider<ThemeData>((ref) {
   final preference = ref.watch(themePreferenceProvider);
-
-  if (preference.themePreset == ThemePreset.tacticalDark) {
-    return _getTacticalDarkTheme();
-  }
-
-  // Default Material Theme
   return FlexThemeData.light(
     scheme: FlexScheme.materialBaseline,
     useMaterial3: true,
-    fontFamily: GoogleFonts.inter().fontFamily,
+    fontFamily: GoogleFonts.sarabun().fontFamily,
   );
 });
 
 final darkThemeDataProvider = Provider<ThemeData>((ref) {
   final preference = ref.watch(themePreferenceProvider);
-
-  if (preference.themePreset == ThemePreset.tacticalDark) {
-    return _getTacticalDarkTheme();
-  }
-
   return FlexThemeData.dark(
     scheme: FlexScheme.materialBaseline,
     useMaterial3: true,
-    fontFamily: GoogleFonts.inter().fontFamily,
+    fontFamily: GoogleFonts.sarabun().fontFamily,
   );
 });
 
-ThemeData _getTacticalDarkTheme() {
-  const background = Color(0xFF0F1115);
-  const surface = Color(0xFF1A1F29);
-  const divider = Color(0xFF2A2F3A);
-  const primary = Color(0xFF3FA7FF);
-  const accent = Color(0xFFFFB020);
-  const success = Color(0xFF4CD964);
-  const warning = Color(0xFFFF5A5F);
-
-  return ThemeData(
-    useMaterial3: true,
-    brightness: Brightness.dark,
-    scaffoldBackgroundColor: background,
-    colorScheme: const ColorScheme.dark(
-      primary: primary,
-      secondary: accent,
-      surface: surface,
-      background: background,
-      error: warning,
-      onPrimary: Colors.white,
-      onSecondary: Colors.black,
-      onSurface: Colors.white,
-      onBackground: Colors.white,
-    ),
-    dividerTheme: const DividerThemeData(
-      color: divider,
-      thickness: 1,
-      space: 1,
-    ),
-    cardTheme: CardThemeData(
-      color: surface,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(6),
-        side: const BorderSide(color: divider, width: 1),
-      ),
-    ),
-    textTheme: GoogleFonts.rajdhaniTextTheme(
-      const TextTheme(
-        displayLarge: TextStyle(fontWeight: FontWeight.bold),
-        headlineMedium: TextStyle(fontWeight: FontWeight.bold),
-        titleLarge: TextStyle(fontWeight: FontWeight.w600),
-        bodyLarge: TextStyle(letterSpacing: 0.5),
-      ),
-    ).apply(bodyColor: Colors.white, displayColor: Colors.white),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: primary,
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        textStyle: const TextStyle(
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1.0,
-        ),
-      ),
-    ),
-    outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: primary,
-        side: const BorderSide(color: primary, width: 1.5),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      ),
-    ),
-    progressIndicatorTheme: const ProgressIndicatorThemeData(
-      color: primary,
-      linearTrackColor: divider,
-      circularTrackColor: divider,
-    ),
-  );
-}
+// Removed _getTacticalDarkTheme

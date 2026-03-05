@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:focus_companion/features/theme/data/providers/theme_providers.dart';
-import 'package:focus_companion/features/theme/domain/entities/theme_preference.dart';
-import 'package:focus_companion/core/widgets/tactical_card.dart';
 
 class ThemeSettingsScreen extends ConsumerWidget {
   const ThemeSettingsScreen({super.key});
@@ -13,22 +11,21 @@ class ThemeSettingsScreen extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('INTERFACE CONFIG')),
+      appBar: AppBar(title: const Text('ตั้งค่าแอปพลิเคชัน')),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          _buildSectionHeader(theme, 'THEME PRESETS'),
+          _buildSectionHeader(theme, 'ธีมของแอป'),
           const SizedBox(height: 16),
 
           _buildThemeOption(
             context,
             ref,
-            title: 'TACTICAL DARK (MISSION CONTROL)',
-            description:
-                'Futuristic industrial interface with neon highlights.',
-            preset: ThemePreset.tacticalDark,
-            currentPreset: themePreference.themePreset,
-            icon: Icons.terminal,
+            title: 'โหมดสว่าง (Light Mode)',
+            description: 'หน้าจอโทนสีสว่าง สบายตา',
+            isDark: false,
+            currentIsDark: themePreference.isDarkMode,
+            icon: Icons.light_mode,
           ),
 
           const SizedBox(height: 16),
@@ -36,37 +33,33 @@ class ThemeSettingsScreen extends ConsumerWidget {
           _buildThemeOption(
             context,
             ref,
-            title: 'MATERIAL STANDARDS',
-            description: 'Standard system interface with clean aesthetics.',
-            preset: ThemePreset.material,
-            currentPreset: themePreference.themePreset,
-            icon: Icons.style,
+            title: 'โหมดมืด (Dark Mode)',
+            description: 'หน้าจอโทนสีเข้ม สบายตาในเวลากลางคืน',
+            isDark: true,
+            currentIsDark: themePreference.isDarkMode,
+            icon: Icons.dark_mode,
           ),
 
           const SizedBox(height: 32),
 
-          _buildSectionHeader(theme, 'VISUAL ENHANCEMENTS'),
+          _buildSectionHeader(theme, 'การปรับแต่งเพิ่มเติม'),
           const SizedBox(height: 16),
 
-          TacticalCard(
+          Card(
+            clipBehavior: Clip.antiAlias,
             child: SwitchListTile(
               title: const Text(
-                'GLASS OVERLAY',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                ),
+                'เอฟเฟกต์โปร่งแสง (Glass Effect)',
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              subtitle: const Text(
-                'Apply frosted glass effect to UI elements.',
-              ),
+              subtitle: const Text('เปิดใช้เอฟเฟกต์กระจกโปร่งแสง'),
               value: themePreference.useGlassEffect,
               onChanged: (value) {
                 ref
                     .read(themePreferenceProvider.notifier)
                     .setGlassEffect(value);
               },
-              activeColor: theme.colorScheme.primary,
+              activeThumbColor: theme.colorScheme.primary,
               contentPadding: EdgeInsets.zero,
             ),
           ),
@@ -75,10 +68,9 @@ class ThemeSettingsScreen extends ConsumerWidget {
 
           Center(
             child: Text(
-              'INTERFACE VERSION v1.0.4r',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.3),
-                letterSpacing: 2.0,
+              'เวอร์ชัน 1.0.0',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.5),
               ),
             ),
           ),
@@ -90,9 +82,8 @@ class ThemeSettingsScreen extends ConsumerWidget {
   Widget _buildSectionHeader(ThemeData theme, String title) {
     return Text(
       title,
-      style: theme.textTheme.labelSmall?.copyWith(
-        color: theme.colorScheme.primary.withOpacity(0.7),
-        letterSpacing: 1.5,
+      style: theme.textTheme.titleMedium?.copyWith(
+        color: theme.colorScheme.primary,
         fontWeight: FontWeight.bold,
       ),
     );
@@ -103,25 +94,26 @@ class ThemeSettingsScreen extends ConsumerWidget {
     WidgetRef ref, {
     required String title,
     required String description,
-    required ThemePreset preset,
-    required ThemePreset currentPreset,
+    required bool isDark,
+    required bool currentIsDark,
     required IconData icon,
   }) {
-    final isSelected = preset == currentPreset;
+    final isSelected = isDark == currentIsDark;
     final theme = Theme.of(context);
 
-    return TacticalCard(
-      padding: EdgeInsets.zero,
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: isSelected
+            ? BorderSide(color: theme.colorScheme.primary, width: 2)
+            : BorderSide.none,
+      ),
       child: InkWell(
         onTap: () {
-          ref.read(themePreferenceProvider.notifier).setThemePreset(preset);
+          ref.read(themePreferenceProvider.notifier).setDarkMode(isDark);
         },
         child: Container(
-          decoration: BoxDecoration(
-            border: isSelected
-                ? Border.all(color: theme.colorScheme.primary, width: 2)
-                : null,
-          ),
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
@@ -141,7 +133,6 @@ class ThemeSettingsScreen extends ConsumerWidget {
                       title,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
                         color: isSelected
                             ? theme.colorScheme.primary
                             : theme.colorScheme.onSurface,

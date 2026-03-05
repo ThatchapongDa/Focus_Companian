@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:focus_companion/core/constants/app_constants.dart';
 import 'package:focus_companion/features/tasks/domain/entities/task.dart';
-import 'package:focus_companion/core/widgets/tactical_card.dart';
 
 class TaskCard extends ConsumerWidget {
   final Task task;
@@ -55,19 +54,17 @@ class TaskCard extends ConsumerWidget {
           return await showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('PURGE TASK?'),
-              content: const Text(
-                'Are you sure you want to delete this objective?',
-              ),
+              title: const Text('ลบงาน?'),
+              content: const Text('คุณแน่ใจหรือไม่ว่าต้องการลบงานนี้?'),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context, false),
-                  child: const Text('CANCEL'),
+                  child: const Text('ยกเลิก'),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(context, true),
                   child: const Text(
-                    'PURGE',
+                    'ลบ',
                     style: TextStyle(color: Colors.redAccent),
                   ),
                 ),
@@ -81,8 +78,9 @@ class TaskCard extends ConsumerWidget {
           onDelete?.call();
         }
       },
-      child: TacticalCard(
-        padding: EdgeInsets.zero,
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 8),
+        clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
           child: Padding(
@@ -115,11 +113,10 @@ class TaskCard extends ConsumerWidget {
                     children: [
                       // Title
                       Text(
-                        task.title.toUpperCase(),
+                        task.title,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
                           color: task.isCompleted
                               ? theme.colorScheme.onSurface.withOpacity(0.3)
                               : theme.colorScheme.onSurface,
@@ -184,10 +181,9 @@ class TaskCard extends ConsumerWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '${task.totalFocusMinutes}M LOGGED',
+                              'ใช้เวลาโฟกัส ${task.totalFocusMinutes} นาที',
                               style: TextStyle(
                                 fontSize: 11,
-                                fontWeight: FontWeight.bold,
                                 color: theme.colorScheme.onSurface.withOpacity(
                                   0.6,
                                 ),

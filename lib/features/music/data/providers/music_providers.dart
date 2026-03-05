@@ -18,11 +18,12 @@ final audioPlayerServiceProvider = Provider<AudioMusicPlayerService>((ref) {
   return service;
 });
 
-final youtubePlayerServiceProvider = Provider<YoutubeMusicPlayerService>((ref) {
-  final service = YoutubeMusicPlayerService();
-  ref.onDispose(() => service.dispose());
-  return service;
-});
+final youtubePlayerServiceProvider =
+    ChangeNotifierProvider<YoutubeMusicPlayerService>((ref) {
+      final service = YoutubeMusicPlayerService();
+      ref.onDispose(() => service.dispose());
+      return service;
+    });
 
 // Current Player Service Provider (auto-selects based on track type)
 final currentPlayerServiceProvider = StateProvider<MusicPlayerService?>((ref) {
@@ -46,9 +47,17 @@ final currentTrackProvider = StateProvider<MusicTrack?>((ref) {
   return null;
 });
 
-// Player State Provider
-final playerStateProvider = StateProvider<MusicPlayerState>((ref) {
-  return MusicPlayerState.idle;
+// Player State Stream Provider (syncs automatically)
+final playerStateStreamProvider = StreamProvider<MusicPlayerState>((ref) {
+  final service = ref.watch(currentPlayerServiceProvider);
+  if (service == null) return Stream.value(MusicPlayerState.idle);
+  return service.playerStateStream;
+});
+
+// Legacy playerStateProvider for compatibility
+final playerStateProvider = Provider<MusicPlayerState>((ref) {
+  final asyncState = ref.watch(playerStateStreamProvider);
+  return asyncState.value ?? MusicPlayerState.idle;
 });
 
 // Volume Provider

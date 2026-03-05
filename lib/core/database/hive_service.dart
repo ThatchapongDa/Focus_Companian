@@ -1,5 +1,4 @@
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:path_provider/path_provider.dart';
 
 class HiveService {
   static final HiveService _instance = HiveService._internal();
@@ -11,8 +10,7 @@ class HiveService {
   Future<void> init() async {
     if (_initialized) return;
 
-    final appDocumentDir = await getApplicationDocumentsDirectory();
-    await Hive.initFlutter(appDocumentDir.path);
+    await Hive.initFlutter();
 
     _initialized = true;
   }

@@ -2,13 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:focus_companion/core/constants/app_constants.dart';
 import 'package:focus_companion/features/focus/data/providers/focus_providers.dart';
+import 'package:focus_companion/features/focus/presentation/widgets/timer_display.dart';
 import 'package:focus_companion/features/focus/presentation/widgets/number_picker.dart';
 import 'package:focus_companion/features/tasks/data/providers/task_providers.dart';
-import 'package:focus_companion/features/music/presentation/widgets/music_player_widget.dart';
-import 'package:focus_companion/features/music/data/providers/music_providers.dart';
-import 'package:focus_companion/features/focus/presentation/widgets/tactical_timer_display.dart';
-import 'package:focus_companion/core/widgets/glow_button.dart';
-import 'package:focus_companion/core/widgets/tactical_card.dart';
 
 class FocusScreen extends ConsumerStatefulWidget {
   final String? preselectedTaskId;
@@ -45,41 +41,30 @@ class _FocusScreenState extends ConsumerState<FocusScreen> {
   Widget build(BuildContext context) {
     final timerService = ref.watch(timerServiceProvider);
     final allTasksAsync = ref.watch(allTasksProvider);
-    final theme = Theme.of(context);
-
-    // Listen to timer state changes to stop music when session completes
-    ref.listen(timerServiceProvider, (previous, next) {
-      if (next.isCompleted && !(previous?.isCompleted ?? false)) {
-        ref.read(currentPlayerServiceProvider)?.stop();
-      }
-    });
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('MISSION CONTROL'),
+        title: const Text('Focus Session'),
         actions: [
           if (timerService.isRunning || timerService.isPaused)
             IconButton(
-              icon: const Icon(Icons.stop_circle_outlined),
+              icon: const Icon(Icons.stop),
               onPressed: () async {
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: const Text('ABORT MISSION?'),
+                    title: const Text('หยุด Session?'),
                     content: const Text(
-                      'Are you sure you want to stop the current operation?',
+                      'คุณแน่ใจหรือไม่ที่จะหยุด session นี้?',
                     ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: const Text('CANCEL'),
+                        child: const Text('ยกเลิก'),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: Text(
-                          'ABORT',
-                          style: TextStyle(color: theme.colorScheme.error),
-                        ),
+                        child: const Text('หยุด'),
                       ),
                     ],
                   ),
@@ -95,69 +80,61 @@ class _FocusScreenState extends ConsumerState<FocusScreen> {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            // Tactical Timer Display
-            TacticalTimerDisplay(
-              remainingDuration: Duration(
-                seconds: timerService.remainingSeconds,
-              ),
-              totalDuration: Duration(
-                minutes:
-                    timerService.currentSession?.durationMinutes ??
-                    _durationMinutes,
-              ),
+            // Timer Display
+            TimerDisplay(
+              remainingSeconds: timerService.remainingSeconds,
+              progress: timerService.progress,
               isRunning: timerService.isRunning,
+              sessionType: _selectedSessionType,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 48),
 
-            // Music Player
-            const MusicPlayerWidget(),
-
-            const SizedBox(height: 32),
-
-            // Control Sections
+            // Control Buttons
             if (timerService.isIdle || timerService.isCompleted) ...[
               // Session Type Selector
-              _buildSectionHeader(theme, 'OPERATION TYPE'),
+              Text(
+                'ประเภท Session',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               const SizedBox(height: 12),
               SegmentedButton<SessionType>(
                 segments: const [
                   ButtonSegment(
                     value: SessionType.pomodoro,
-                    label: Text('POMODORO'),
+                    label: Text('Pomodoro'),
+                    icon: Icon(Icons.timer),
                   ),
                   ButtonSegment(
                     value: SessionType.custom,
-                    label: Text('CUSTOM'),
+                    label: Text('กำหนดเอง'),
+                    icon: Icon(Icons.edit),
                   ),
                   ButtonSegment(
                     value: SessionType.countUp,
-                    label: Text('COUNT UP'),
+                    label: Text('นับขึ้น'),
+                    icon: Icon(Icons.trending_up),
                   ),
                 ],
                 selected: {_selectedSessionType},
                 onSelectionChanged: (Set<SessionType> selected) {
                   setState(() => _selectedSessionType = selected.first);
                 },
-                style: SegmentedButton.styleFrom(
-                  selectedBackgroundColor: theme.colorScheme.primary,
-                  selectedForegroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
               ),
               const SizedBox(height: 24),
 
               // Custom Duration Picker
               if (_selectedSessionType == SessionType.custom) ...[
-                _buildSectionHeader(theme, 'DURATION SELECTION'),
+                Text(
+                  'ระยะเวลา',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 16),
                 NumberPicker(
                   minValue: 1,
                   maxValue: 120,
                   value: _customMinutes,
                   step: 5,
-                  suffix: ' MINUTES',
+                  suffix: ' นาที',
                   onChanged: (value) {
                     setState(() => _customMinutes = value);
                   },
@@ -174,41 +151,32 @@ class _FocusScreenState extends ConsumerState<FocusScreen> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildSectionHeader(theme, 'TARGET OBJECTIVE'),
+                      Text(
+                        'เชื่อมโยงกับงาน (ไม่บังคับ)',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                       const SizedBox(height: 12),
-                      TacticalCard(
-                        padding: EdgeInsets.zero,
-                        child: DropdownButtonFormField<String?>(
-                          value: _selectedTaskId,
-                          dropdownColor: theme.colorScheme.surface,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                            ),
-                            hintText: 'SELECT MISSION',
-                            hintStyle: TextStyle(
-                              color: theme.colorScheme.onSurface.withOpacity(
-                                0.4,
-                              ),
-                            ),
-                          ),
-                          items: [
-                            const DropdownMenuItem(
-                              value: null,
-                              child: Text('NO TARGET'),
-                            ),
-                            ...incompleteTasks.map((task) {
-                              return DropdownMenuItem(
-                                value: task.id,
-                                child: Text(task.title.toUpperCase()),
-                              );
-                            }),
-                          ],
-                          onChanged: (value) {
-                            setState(() => _selectedTaskId = value);
-                          },
+                      DropdownButtonFormField<String?>(
+                        initialValue: _selectedTaskId,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: 'เลือกงาน',
                         ),
+                        items: [
+                          const DropdownMenuItem(
+                            value: null,
+                            child: Text('ไม่เชื่อมโยง'),
+                          ),
+                          ...incompleteTasks.map((task) {
+                            return DropdownMenuItem(
+                              value: task.id,
+                              child: Text(task.title),
+                            );
+                          }),
+                        ],
+                        onChanged: (value) {
+                          setState(() => _selectedTaskId = value);
+                        },
                       ),
                     ],
                   );
@@ -216,97 +184,104 @@ class _FocusScreenState extends ConsumerState<FocusScreen> {
                 loading: () => const CircularProgressIndicator(),
                 error: (_, __) => const SizedBox.shrink(),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 32),
 
               // Start Button
-              GlowButton(
-                label: 'INITIATE OPERATION',
-                icon: Icons.power_settings_new,
-                onPressed: () async {
-                  await timerService.startTimer(
-                    sessionType: _selectedSessionType,
-                    durationMinutes: _durationMinutes,
-                    taskId: _selectedTaskId,
-                  );
-                },
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    await timerService.startTimer(
+                      sessionType: _selectedSessionType,
+                      durationMinutes: _durationMinutes,
+                      taskId: _selectedTaskId,
+                    );
+                  },
+                  icon: const Icon(Icons.play_arrow, size: 28),
+                  label: const Text(
+                    'เริ่ม Focus',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                ),
               ),
             ] else if (timerService.isRunning) ...[
               // Pause Button
-              GlowButton(
-                label: 'PAUSE OPERATION',
-                icon: Icons.pause,
-                color: Colors.orange,
-                onPressed: () async {
-                  await timerService.pauseTimer();
-                },
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    await timerService.pauseTimer();
+                  },
+                  icon: const Icon(Icons.pause, size: 28),
+                  label: const Text(
+                    'หยุดชั่วคราว',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
               ),
             ] else if (timerService.isPaused) ...[
               // Resume Button
-              GlowButton(
-                label: 'RESUME OPERATION',
-                icon: Icons.play_arrow,
-                onPressed: () async {
-                  await timerService.resumeTimer();
-                },
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    await timerService.resumeTimer();
+                  },
+                  icon: const Icon(Icons.play_arrow, size: 28),
+                  label: const Text(
+                    'ดำเนินการต่อ',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                ),
               ),
             ],
 
             // Completion Message
             if (timerService.isCompleted) ...[
-              const SizedBox(height: 32),
-              TacticalCard(
-                isHighlighted: true,
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.verified,
-                      color: theme.colorScheme.primary,
-                      size: 32,
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'MISSION ACCOMPLISHED',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 2.0,
-                            ),
-                          ),
-                          Text(
-                            'REPORT FILED SUCCESSFULLY',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(
-                                0.6,
-                              ),
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                        ],
+              const SizedBox(height: 24),
+              Card(
+                color: Colors.green.shade50,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.check_circle,
+                        color: Colors.green.shade700,
+                        size: 32,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Session เสร็จสิ้น! เยี่ยมมาก! 🎉',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.green.shade900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(ThemeData theme, String title) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        title,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.primary.withOpacity(0.7),
-          letterSpacing: 1.5,
-          fontWeight: FontWeight.bold,
         ),
       ),
     );
